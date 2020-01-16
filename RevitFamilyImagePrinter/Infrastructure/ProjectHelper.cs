@@ -47,7 +47,15 @@ namespace RevitFamilyImagePrinter.Infrastructure
 
 			foreach (var symbol in data.FamilySymbols)
 			{
-				string nameProject = $"{data.FamilyName}&{symbol.Name}";
+				Document familyDoc = doc.EditFamily(family);
+				FamilyManager familyManager = familyDoc.FamilyManager;
+				FamilyTypeSet familyTypes = familyManager.Types;
+				FamilyType neededType = GetFamilyType(familyTypes, symbol);
+
+				string typeId = GetFamilyParameterValue(familyManager, neededType, "Bauteil-ID");
+				string nameProject = typeId;
+				if (string.IsNullOrEmpty(typeId)) nameProject = $"{data.FamilyName}&{symbol.Name}";
+
 				allSymbols.Add(nameProject);
 
 				string pathProject = Path.Combine(pathData.ProjectsPath, $"{PrintHelper.CorrectFileName(nameProject)}.rvt");
@@ -74,6 +82,51 @@ namespace RevitFamilyImagePrinter.Infrastructure
 
 			DeleteElementCommit(doc, family);
 			return allSymbols;
+		}
+
+		private static FamilyType GetFamilyType(FamilyTypeSet familyTypes, FamilySymbol symbol)
+		{
+			foreach (FamilyType familyType in familyTypes)
+			{
+				if (familyType.Name.Equals(symbol.Name)) return familyType;
+			}
+			return null;
+		}
+
+		public static string GetFamilyParameterValue(FamilyManager familyManager, FamilyType type, string parameterStr)
+		{
+			FamilyParameter parameter = null;
+			try
+			{
+				parameter = familyManager.get_Parameter(parameterStr);
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine($"Error retrieving {parameterStr} -> {e.Message}\n");
+				return null;
+			}
+
+			string result = type.AsValueString(parameter);
+			switch (parameter.StorageType)
+			{
+				case StorageType.Double:
+					result = type.AsDouble(parameter).ToString();
+					break;
+				case StorageType.Integer:
+					if (parameter.Definition.ParameterType == ParameterType.YesNo)
+						result = type.AsInteger(parameter) == 0 ? "false" : "true";
+					else
+						result = type.AsInteger(parameter).ToString();
+					break;
+				case StorageType.String:
+					result = type.AsString(parameter);
+					break;
+				case StorageType.ElementId:
+					ElementId id = type.AsElementId(parameter);
+					result = id.IntegerValue.ToString();
+					break;
+			}
+			return result;
 		}
 
 		private static void PrintProject(UIDocument uiDoc, UserImageValues userValues, string imagesFolder, bool is3D)

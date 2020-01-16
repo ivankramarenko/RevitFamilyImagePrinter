@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using RevitFamilyImagePrinter.Infrastructure;
 using System.Linq;
+using Autodesk.Revit.DB.Events;
 
 namespace RevitFamilyImagePrinter.Commands
 {
@@ -32,9 +33,10 @@ namespace RevitFamilyImagePrinter.Commands
 		public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
 		{
 			PrintProgressHelper progressHelper = null;
+			UIApplication uiApp = commandData.Application;
+			uiApp.Application.FailuresProcessing += Application_FailuresProcessing;
 			try
 			{
-				UIApplication uiApp = commandData.Application;
 				_uiDoc = uiApp.ActiveUIDocument;
 				var initProjectPath = _uiDoc.Document.PathName;
 				PrintHelper.CreateEmptyProject(uiApp.Application);
@@ -90,9 +92,16 @@ namespace RevitFamilyImagePrinter.Commands
 			}
 			finally
 			{
+				uiApp.Application.FailuresProcessing -= Application_FailuresProcessing;
 				progressHelper?.Close();
 			}
 			return Result.Succeeded;
+		}
+
+		private void Application_FailuresProcessing(object sender, FailuresProcessingEventArgs e)
+		{
+			FailuresAccessor failuresAccessor = e.GetFailuresAccessor();
+			failuresAccessor.DeleteAllWarnings();
 		}
 
 		private List<FileInfo> GetFamilyFilesFromFolder(DirectoryInfo familiesFolder)

@@ -1,13 +1,11 @@
-﻿using System;
+﻿using Autodesk.Revit.Attributes;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Events;
+using Autodesk.Revit.UI;
+using RevitFamilyImagePrinter.Infrastructure;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Autodesk.Revit.Attributes;
-using Autodesk.Revit.DB;
-using Autodesk.Revit.Exceptions;
-using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Events;
-using RevitFamilyImagePrinter.Infrastructure;
 
 namespace RevitFamilyImagePrinter.Commands
 {
@@ -42,9 +40,10 @@ namespace RevitFamilyImagePrinter.Commands
 		public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
 		{
 			PrintProgressHelper progressHelper = null;
+			_uiApp = commandData.Application;
+			_uiApp.Application.FailuresProcessing += Application_FailuresProcessing;
 			try
 			{
-				_uiApp = commandData.Application;
 				_uiDoc = _uiApp.ActiveUIDocument;
 				var initProjectPath = _uiDoc.Document.PathName;
 				PrintHelper.CreateEmptyProject(commandData.Application.Application);
@@ -101,9 +100,16 @@ namespace RevitFamilyImagePrinter.Commands
 			}
 			finally
 			{
+				_uiApp.Application.FailuresProcessing -= Application_FailuresProcessing;
 				progressHelper?.Close();
 			}
 			return Result.Succeeded;
+		}
+
+		private void Application_FailuresProcessing(object sender, FailuresProcessingEventArgs e)
+		{
+			FailuresAccessor failuresAccessor = e.GetFailuresAccessor();
+			failuresAccessor.DeleteAllWarnings();
 		}
 
 		private List<FileInfo> GetFamilyFilesFromFolder(DirectoryInfo familiesFolder)
