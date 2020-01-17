@@ -130,6 +130,14 @@ namespace RevitFamilyImagePrinter.Windows
 		}
 
 		#region Events
+		private void UserControl_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.Key != Key.Escape) return;
+
+			IsCancelled = true;
+			_parentWindow.DialogResult = false;
+		}
+
 		private void Button_Click_Apply(object sender, RoutedEventArgs e)
 		{
 			Apply();
@@ -440,5 +448,7 @@ namespace RevitFamilyImagePrinter.Windows
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
+
+
 	}
 }
