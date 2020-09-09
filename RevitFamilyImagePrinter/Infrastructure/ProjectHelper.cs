@@ -52,7 +52,9 @@ namespace RevitFamilyImagePrinter.Infrastructure
 				FamilyTypeSet familyTypes = familyManager.Types;
 				FamilyType neededType = GetFamilyType(familyTypes, symbol);
 
-				string typeId = GetFamilyParameterValue(familyManager, neededType, "Bauteil-ID");
+				string typeId = string.Empty;
+				if (!(neededType is null))
+					typeId = GetFamilyParameterValue(familyManager, neededType, "Bauteil-ID");
 				string nameProject = typeId;
 				if (string.IsNullOrEmpty(typeId)) nameProject = $"{data.FamilyName}&{symbol.Name}";
 
@@ -338,7 +340,7 @@ namespace RevitFamilyImagePrinter.Infrastructure
 		{
 			if (familiesFolder == null) return null;
 
-			var familyFilesList = familiesFolder.GetFiles().Where(x => x.Extension.Equals(".rfa")).ToList();
+			var familyFilesList = familiesFolder.GetFiles("*.rfa", SearchOption.AllDirectories).ToList(); // .Where(x => x.Extension.Equals(".rfa"))
 			if (!familyFilesList.Any())
 			{
 				new TaskDialog("Fail")

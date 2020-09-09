@@ -565,8 +565,7 @@ namespace RevitFamilyImagePrinter.Infrastructure
 			{
 				ZoomOpenUIViews(uiDoc, userValues.UserZoomValue);
 
-				FilteredElementCollector collector = new FilteredElementCollector(doc);
-				collector.OfClass(typeof(View3D));
+				FilteredElementCollector collector = new FilteredElementCollector(doc).OfClass(typeof(View3D));
 				foreach (View3D view3D in collector)
 				{
 					if (view3D == null) continue;
