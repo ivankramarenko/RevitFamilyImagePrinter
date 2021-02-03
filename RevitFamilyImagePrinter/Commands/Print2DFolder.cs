@@ -46,7 +46,7 @@ namespace RevitFamilyImagePrinter.Commands
 				if (familiesFolder == null)
 					return Result.Cancelled;
 
-				UserFolderTo = 
+				UserFolderTo =
 					PrintHelper.SelectFolderDialog($"{App.Translator.GetValue(Translator.Keys.folderDialogToTitle)}");
 				if (UserFolderTo == null)
 					return Result.Cancelled;
@@ -57,7 +57,7 @@ namespace RevitFamilyImagePrinter.Commands
 					return Result.Failed;
 
 				var families = GetFamilyFilesFromFolder(familiesFolder);
-				if (families == null)
+				if (families is null || families.Count < 1)
 					return Result.Failed;
 
 				progressHelper = new PrintProgressHelper(familiesFolder,
@@ -70,13 +70,21 @@ namespace RevitFamilyImagePrinter.Commands
 					App.Translator.GetValue(Translator.Keys.folderProjectsName)));
 				foreach (var i in families)
 				{
-					PathData pathData = new PathData()
+					try
 					{
-						FamilyPath = i.FullName,
-						ProjectsPath = UserFolderFrom.FullName,
-						ImagesPath = UserFolderTo.FullName
-					};
-					ProjectHelper.CreateProjectsFromFamily(_uiDoc, pathData, UserValues);
+						PathData pathData = new PathData()
+						{
+							FamilyPath = i.FullName,
+							ProjectsPath = UserFolderFrom.FullName,
+							ImagesPath = UserFolderTo.FullName
+						};
+						ProjectHelper.CreateProjectsFromFamily(_uiDoc, pathData, UserValues);
+					}
+					catch (Exception exc)
+					{
+						PrintHelper.ProcessError(exc,
+							$"{App.Translator.GetValue(Translator.Keys.errorMessage2dFolderPrinting)}", _logger, false);
+					}
 				}
 
 				if (!string.IsNullOrEmpty(initProjectPath) && File.Exists(initProjectPath))

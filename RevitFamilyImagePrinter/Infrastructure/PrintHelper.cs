@@ -155,7 +155,6 @@ namespace RevitFamilyImagePrinter.Infrastructure
 
 		private static void ZoomOpenUIViews(UIDocument uiDoc, double zoomValue, bool isToFit = true)
 		{
-			//IList<UIView> uiViews = uiDoc.GetOpenUIViews();
 			var activeView = uiDoc
 				.GetOpenUIViews()
 				.FirstOrDefault(x => x.ViewId == uiDoc.ActiveView.Id);
@@ -165,17 +164,6 @@ namespace RevitFamilyImagePrinter.Infrastructure
 			}
 			activeView.Zoom(zoomValue);
 			uiDoc.RefreshActiveView();
-			//foreach (var item in uiViews)
-			//{
-			//	if(item.ViewId != uiDoc.ActiveView.Id) continue;
-			//	if (isToFit)
-			//	{
-			//		item.ZoomToFit();
-			//		uiDoc.RefreshActiveView();
-			//	}
-			//	item.Zoom(zoomValue);
-			//	uiDoc.RefreshActiveView();
-			//}
 		}
 
 		private static double GetScaleFromElement(UIDocument uiDoc)
@@ -418,8 +406,6 @@ namespace RevitFamilyImagePrinter.Infrastructure
 					if (!isAuto)
 						filePath = SelectFileNameDialog(initialName);
 					if (filePath == initialName) return;
-					IList<ElementId> views = new List<ElementId>();
-					views.Add(doc.ActiveView.Id);
 
 					string umlautName = new FileInfo(filePath).Name;
 					string normalizedName = CorrectFileName(umlautName);
@@ -432,6 +418,7 @@ namespace RevitFamilyImagePrinter.Infrastructure
 
 					var exportOptions = new ImageExportOptions
 					{
+						//ExportRange = ExportRange.CurrentView,
 						ExportRange = ExportRange.VisibleRegionOfCurrentView,
 						FilePath = tmpFilePath,
 						FitDirection = FitDirectionType.Vertical,
@@ -445,11 +432,6 @@ namespace RevitFamilyImagePrinter.Infrastructure
 					};
 
 					ZoomOpenUIViews(uiDoc, userValues.UserZoomValue);
-
-					if (views.Count > 0)
-					{
-						exportOptions.SetViewsAndSheets(views);
-					}
 
 					var scale = GetScaleFromElement(uiDoc);
 
@@ -479,7 +461,7 @@ namespace RevitFamilyImagePrinter.Infrastructure
 			using (Transaction transaction = new Transaction(uiDoc.Document))
 			{
 				transaction.Start("Set View");
-				uiDoc.ActiveView.DetailLevel = is3D ? ViewDetailLevel.Fine : userValues.UserDetailLevel;
+				uiDoc.ActiveView.DetailLevel = userValues.UserDetailLevel;
 				uiDoc.ActiveView.Scale = userValues.UserScale;
 				transaction.Commit();
 			}
@@ -502,6 +484,7 @@ namespace RevitFamilyImagePrinter.Infrastructure
 						&& tmpView.ViewType == ViewType.EngineeringPlan)
 					{
 						view = tmpView;
+						break;
 					}
 				}
 
@@ -523,6 +506,7 @@ namespace RevitFamilyImagePrinter.Infrastructure
 				{
 					if (view == null || view.IsTemplate) continue;
 					view3D = view;
+					break;
 				}
 
 				if (view3D == null)
@@ -659,10 +643,20 @@ namespace RevitFamilyImagePrinter.Infrastructure
 
 		public static void HideElementsCommit(UIDocument uiDoc, ICollection<ElementId> elements)
 		{
-			using (Transaction transaction = new Transaction(uiDoc.Document, "Level Isolating"))
+			using (Transaction transaction = new Transaction(uiDoc.ActiveView.Document, "Elements hiding"))
 			{
 				transaction.Start();
 				uiDoc.ActiveView.HideElements(elements);
+				transaction.Commit();
+			}
+		}
+
+		public static void HideElementsCommit(Document doc, View view, ICollection<ElementId> elements)
+		{
+			using (Transaction transaction = new Transaction(doc, "Elements hiding"))
+			{
+				transaction.Start();
+				view.HideElements(elements);
 				transaction.Commit();
 			}
 		}

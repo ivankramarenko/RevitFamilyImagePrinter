@@ -152,16 +152,16 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>call "D:\SigningScript.bat" "$(ProjectDir)bin\debug\RevitFamilyImagePrinter.dll
-call "D:\SigningScript.bat" "$(ProjectDir)bin\release\RevitFamilyImagePrinter.dll
+REM call "D:\SigningScript.bat" "$(ProjectDir)bin\release\RevitFamilyImagePrinter.dll
 
-copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2021"
-copy "$(ProjectDir)bin\debug\*.dll" "$(AppData)\Autodesk\REVIT\Addins\2021"
-REM copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2020"
-REM copy "$(ProjectDir)bin\debug\*.dll" "$(AppData)\Autodesk\REVIT\Addins\2020"
-REM copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2019"
-REM copy "$(ProjectDir)bin\debug\*.dll" "$(AppData)\Autodesk\REVIT\Addins\2019"
-REM copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2018"
-REM copy "$(ProjectDir)bin\debug\*.dll" "$(AppData)\Autodesk\REVIT\Addins\2018"
+copy "$(ProjectDir)*.addin" "$(ProgramData)\Autodesk\REVIT\Addins\2021"
+copy "$(ProjectDir)bin\debug\*.dll" "$(ProgramData)\Autodesk\REVIT\Addins\2021"
+REM copy "$(ProjectDir)*.addin" "$(ProgramData)\Autodesk\REVIT\Addins\2020"
+REM copy "$(ProjectDir)bin\debug\*.dll" "$(ProgramData)\Autodesk\REVIT\Addins\2020"
+copy "$(ProjectDir)*.addin" "$(ProgramData)\Autodesk\REVIT\Addins\2019"
+copy "$(ProjectDir)bin\debug\*.dll" "$(ProgramData)\Autodesk\REVIT\Addins\2019"
+REM copy "$(ProjectDir)*.addin" "$(ProgramData)\Autodesk\REVIT\Addins\2018"
+REM copy "$(ProjectDir)bin\debug\*.dll" "$(ProgramData)\Autodesk\REVIT\Addins\2018"
 REM copy "$(ProjectDir)*.addin" "$(ProgramData)\Autodesk\REVIT\Addins\2017"
 REM copy "$(ProjectDir)bin\debug\*.dll" "$(ProgramData)\Autodesk\REVIT\Addins\2017"
 </PostBuildEvent>
